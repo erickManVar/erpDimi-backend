@@ -1,0 +1,144 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  password String
+  role     String
+  projects Project[]
+}
+
+model Project {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String
+  startDate   DateTime
+  endDate     DateTime
+  budget      Float
+  status      String
+  userId      Int
+  user        User         @relation(fields: [userId], references: [id])
+  stages      Stage[]
+  materials   Material[]
+  contractors Contractor[]
+  progress    Progress[]
+}
+
+model Stage {
+  id          Int       @id @default(autoincrement())
+  code        String
+  name        String
+  projectId   Int
+  project     Project   @relation(fields: [projectId], references: [id])
+  tasks       Task[]
+}
+
+model Task {
+  id                 Int       @id @default(autoincrement())
+  code               String
+  name               String
+  stageId            Int
+  stage              Stage     @relation(fields: [stageId], references: [id])
+  unit               String
+  quantity           Float
+  unitPriceLabor     Float
+  partialLabor       Float
+  partialMaterial    Float
+  subtotalContractor1 Float
+  total              Float
+  unitPriceIdeal     Float
+  subtotalIdeal      Float
+  totalIdeal         Float
+  subTasks           SubTask[]
+}
+
+model SubTask {
+  id          Int       @id @default(autoincrement())
+  code        String
+  name        String
+  taskId      Int
+  task        Task      @relation(fields: [taskId], references: [id])
+  unit        String
+  quantity    Float
+  unitPrice   Float
+  partial     Float
+  materials   SubTaskMaterial[]
+}
+
+model SubTaskMaterial {
+  id          Int       @id @default(autoincrement())
+  subTaskId   Int
+  subTask     SubTask   @relation(fields: [subTaskId], references: [id])
+  code        String
+  description String
+  unit        String
+  entryDate   DateTime
+  status      String
+  quantity    Float
+  unitPrice   Float
+  totalPrice  Float
+  totalToUse  Float
+}
+
+model Material {
+  id          Int          @id @default(autoincrement())
+  code        String
+  description String
+  unit        String
+  entryDate   DateTime
+  status      String
+  quantity    Float
+  unitPrice   Float
+  totalPrice  Float
+  totalToUse  Float
+  projectId   Int
+  project     Project      @relation(fields: [projectId], references: [id])
+  orders      MaterialOrder[]
+}
+
+model Contractor {
+  id          Int       @id @default(autoincrement())
+  name        String
+  contact     String
+  projectId   Int
+  project     Project   @relation(fields: [projectId], references: [id])
+  progress    Progress[]
+}
+
+model Progress {
+  id          Int        @id @default(autoincrement())
+  week        Int
+  progress    String
+  cost        Float
+  contractorId Int
+  contractor  Contractor @relation(fields: [contractorId], references: [id])
+  projectId   Int
+  project     Project    @relation(fields: [projectId], references: [id])
+}
+
+model Supplier {
+  id               Int             @id @default(autoincrement())
+  name             String
+  contact          String
+  materialsSupplied String
+  orders           MaterialOrder[]
+}
+
+model MaterialOrder {
+  id          Int       @id @default(autoincrement())
+  materialId  Int
+  material    Material  @relation(fields: [materialId], references: [id])
+  supplierId  Int
+  supplier    Supplier  @relation(fields: [supplierId], references: [id])
+  quantity    Int
+  totalCost   Float
+  orderDate   DateTime
+  deliveryDate DateTime
+}
